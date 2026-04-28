@@ -8,11 +8,11 @@ namespace ApiClienteServidor.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PersonaController : ControllerBase
+    public class AlumnoController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        public PersonaController(AppDbContext context)
+        public AlumnoController(AppDbContext context)
         {
             _context = context;
         }
@@ -20,14 +20,14 @@ namespace ApiClienteServidor.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var consulta = await _context.Persona.ToListAsync();
+            var consulta = await _context.Alumno.ToListAsync();
             return Ok(new { exito = true, consulta });
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var consulta = await _context.Persona.Where(p => p.Id == id).ToListAsync();
+            var consulta = await _context.Alumno.Where(p => p.Id == id).ToListAsync();
             if (consulta == null || consulta.Count == 0)
             {
                 return NotFound();
@@ -36,40 +36,39 @@ namespace ApiClienteServidor.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Persona persona)
+        public async Task<IActionResult> Post([FromBody] Alumno alumno)
         {
-            _context.Persona.Add(persona);
+            _context.Alumno.Add(alumno);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(Get), new { id = persona.Id }, new
+            return CreatedAtAction(nameof(Get), new { id = alumno.Id }, new
             {
                 Ok = true,
-                mensaje = "Persona agregada correctamente",
-                data = persona
+                mensaje = "Alumno agregado correctamente",
+                data = alumno
             });
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put(int id, [FromBody] Persona persona)
+        public async Task<IActionResult> Put(int id, [FromBody] Alumno alumno)
         {
-            var consulta = await _context.Persona.FindAsync(id);
+            var consulta = await _context.Alumno.FindAsync(id);
             if (consulta == null)
             {
                 return NotFound();
             }
 
-            consulta.Id = persona.Id;
-            consulta.Nombre = persona.Nombre;
-            consulta.Edad = persona.Edad;
-            consulta.Cantidad = persona.Cantidad;
-            consulta.Descripcion = persona.Descripcion;
+            consulta.Id = alumno.Id;
+            consulta.Nombre = alumno.Nombre;
+            consulta.Matricula = alumno.Matricula;
+            consulta.Edad = alumno.Edad;
 
             _context.Entry(consulta).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return Ok(new
             {
                 Ok = true,
-                mensaje = "Persona actualizada correctamente",
+                mensaje = "Alumno actualizado correctamente",
                 data = consulta
             });
         }
@@ -77,44 +76,45 @@ namespace ApiClienteServidor.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var consulta = await _context.Persona.FindAsync(id);
+            var consulta = await _context.Alumno.FindAsync(id);
             if (consulta == null)
             {
                 return NotFound();
             }
 
-            _context.Persona.Remove(consulta);
+            _context.Alumno.Remove(consulta);
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
                 Ok = true,
-                mensaje = "Persona eliminada correctamente",
+                mensaje = "Alumno eliminado correctamente",
                 data = consulta
             });
         }
 
         [HttpPatch("{id}")]
-        public async Task<IActionResult> PatchPersona(int id, [FromBody] Dictionary<string, object> actualizacion)
+        public async Task<IActionResult> PatchAlumno(int id, [FromBody] Dictionary<string, object> actualizacion)
         {
-
-            var consulta = await _context.Persona.FindAsync(id);
+            var consulta = await _context.Alumno.FindAsync(id);
+            
+            if (consulta == null)
+            {
+                return NotFound();
+            }
 
             foreach (var campo in actualizacion)
             {
                 switch (campo.Key.ToLower())
                 {
                     case "nombre":
-                        consulta?.Nombre = campo.Value.ToString();
+                        consulta.Nombre = campo.Value.ToString();
+                        break;
+                    case "matricula":
+                        consulta.Matricula = ConvierteEntero(campo.Value);
                         break;
                     case "edad":
-                        consulta?.Edad = ConvierteEntero(campo.Value);
-                        break;
-                    case "cantidad":
-                        consulta?.Cantidad = ConvierteEntero(campo.Value);
-                        break;
-                    case "descripcion":
-                        consulta?.Descripcion = campo.Value.ToString();
+                        consulta.Edad = ConvierteEntero(campo.Value);
                         break;
                     default:
                         break;
@@ -122,11 +122,11 @@ namespace ApiClienteServidor.Controllers
             }
 
             await _context.SaveChangesAsync();
-                
+
             return Ok(new
             {
                 Ok = true,
-                mensaje = "Persona actualizada correctamente",
+                mensaje = "Alumno actualizado correctamente",
                 data = consulta
             });
         }
@@ -143,12 +143,10 @@ namespace ApiClienteServidor.Controllers
 
             if (Valor is string cadenaValor)
             {
-                return int.Parse(cadenaValor);   
+                return int.Parse(cadenaValor);
             }
 
             return Convert.ToInt32(Valor);
         }
-
-
     }
 }
